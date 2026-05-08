@@ -1,0 +1,12 @@
+# requirements.txt
+
+pandas>=1.5 # data handling
+numpy>=1.23 # numerical operations
+scikit-learn>=1.2 # models + preprocessing
+matplotlib>=3.6 # visualization
+seaborn>=0.12 # visualization
+xgboost>=1.7 # model
+
+
+# these versions are: minimal, stable, and aligned with my project
+# How to test this file: In a fresh environment; pip install -r requirements.txt
