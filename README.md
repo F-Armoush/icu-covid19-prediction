@@ -186,7 +186,7 @@ icu-covid19-prediction/
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/F-Armoush/icu-covid19-prediction.git
 cd icu-covid19-prediction
 ```
 
