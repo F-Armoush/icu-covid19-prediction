@@ -22,11 +22,16 @@ from sklearn.metrics import (
 from xgboost import XGBClassifier
 
 from .data_loader import load_data
+
 from .config import (
     TARGET_COL,
     ID_COL,
     TEST_SIZE,
-    RANDOM_STATE
+    RANDOM_STATE,
+    MAX_ITER,
+    N_ESTIMATORS,
+    MAX_DEPTH,
+    EVAL_METRIC
 )
 
 from .preprocessing import (
@@ -92,26 +97,25 @@ def train_models():
     # Models
     # -------------------------
     models = {
+
         "logistic": LogisticRegression(
-            max_iter=1000
+            max_iter=MAX_ITER
         ),
 
         "random_forest": RandomForestClassifier(
-            n_estimators=200,
+            n_estimators=N_ESTIMATORS,
+            max_depth=MAX_DEPTH,
             random_state=RANDOM_STATE
         ),
 
         "xgboost": XGBClassifier(
-            eval_metric="logloss",
+            eval_metric=EVAL_METRIC,
             random_state=RANDOM_STATE
         )
     }
 
     trained_models = {}
     results = {}
-
-    best_predictions = None
-    best_probabilities = None
 
     # -------------------------
     # Train + evaluate
