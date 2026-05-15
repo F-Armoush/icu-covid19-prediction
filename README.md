@@ -2,21 +2,31 @@
 
 ## Overview
 
-This project develops a machine learning pipeline to predict whether a patient with confirmed COVID-19 will require Intensive Care Unit (ICU) admission using only early-stage clinical data (first 0–2 hours).
+This project develops an end-to-end machine learning system to predict whether a patient with confirmed COVID-19 will require Intensive Care Unit (ICU) admission using only early-stage clinical data collected within the first 0–2 hours.
 
-The objective is to enable early risk identification to support clinical decision-making and efficient ICU resource allocation.
+The project evolved from exploratory notebook experimentation into a modular, reproducible, deployment-ready ML application featuring:
+
+* Leakage-safe preprocessing
+* Reusable ML pipelines
+* FastAPI inference backend
+* Streamlit interactive frontend
+* Dockerized deployment architecture
+* Cloud deployment readiness
+
+The objective is to support early risk identification and clinically realistic ICU prediction workflows.
 
 ---
 
 ## Business / Clinical Problem
 
-Early identification of patients at risk of severe deterioration is critical in managing COVID-19 cases.
+Early identification of patients at risk of severe deterioration is critical in COVID-19 management.
 
-Accurate ICU prediction can support:
+Accurate ICU risk prediction can support:
 
 * Prioritized patient monitoring
 * Efficient ICU resource allocation
-* Timely clinical intervention
+* Earlier clinical intervention
+* Improved operational planning under constrained resources
 
 This project focuses on clinically realistic early prediction, following the principle:
 
@@ -26,7 +36,7 @@ This project focuses on clinically realistic early prediction, following the pri
 
 ## Dataset
 
-The dataset contains clinical and laboratory measurements for **385 confirmed COVID-19 patients**, each observed across multiple time windows:
+The dataset contains clinical and laboratory measurements for **385 confirmed COVID-19 patients**, each observed across multiple temporal windows:
 
 * 0–2 hours
 * 2–4 hours
@@ -36,13 +46,25 @@ The dataset contains clinical and laboratory measurements for **385 confirmed CO
 
 ### Final Modeling Dataset
 
-To prevent temporal leakage and ensure clinically meaningful prediction:
+To ensure clinically meaningful prediction and prevent temporal leakage:
 
 * Only the first observation window (0–2 hours) is used
 * Each patient is represented once
 * The target reflects future ICU admission
 
-The processed dataset (`df_model.csv`) is generated during the EDA stage and represents a leakage-safe, patient-level dataset used for model training and evaluation.
+The processed dataset (`df_model.csv`) represents a leakage-safe, patient-level dataset used for model training and inference.
+
+### Final Dataset Characteristics
+
+* 385 patients
+* 192 engineered input features after preprocessing and encoding
+* Balanced ICU target distribution
+
+> Note: `df_model.csv` shape is `(385, 194)` including:
+>
+> * 192 input features
+> * 1 target column
+> * 1 patient identifier column
 
 ---
 
@@ -50,30 +72,36 @@ The processed dataset (`df_model.csv`) is generated during the EDA stage and rep
 
 ### Data Strategy
 
+The project applies a clinically realistic early prediction strategy:
+
 * Restricted analysis to the first observation window (0–2 hours)
 * Constructed a patient-level ICU target
-* Removed post-admission information to prevent temporal leakage
+* Removed post-admission information
+* Prevented temporal and repeated-patient leakage
 
-### Preprocessing
+### Preprocessing Pipeline
+
+The preprocessing workflow was implemented using reusable Scikit-learn pipelines.
+
+#### Numerical Features
+
+* Median imputation
+* Standard scaling
+
+#### Categorical Features
+
+* Most frequent imputation
+* One-hot encoding
+
+### Feature Engineering
 
 * Removed features with >60% missing values
-* Numerical features:
+* Structured feature groups explicitly
+* Built reusable preprocessing architecture with:
 
-  * Median imputation
-  * Standard scaling
-* Categorical features:
+  * `Pipeline`
+  * `ColumnTransformer`
 
-  * Most frequent imputation
-  * One-hot encoding
-
-### Final Dataset
-
-* 385 patients
-* 192 engineered input features after preprocessing and encoding
-
-* Note: 
-  * df_model.csv shape is (385.194) that 192 features pluse the "target_col" and "id_col".
-  
 ---
 
 ## Modeling
@@ -100,14 +128,14 @@ All models were trained using a stratified 80/20 train-test split.
 
 ## Model Selection
 
-Random Forest was selected as the final model based on its overall balance between recall and F1-score, which are particularly important for this clinical use case.
+Random Forest was selected as the final model based on its overall balance between recall and F1-score, which are especially important for this clinical use case.
 
 ### Selection Rationale
 
 * Highest F1-score across all evaluated models
 * Highest recall (~0.82), reducing false negatives
-* Stable performance across evaluation metrics
-
+* Stable overall performance across metrics
+* Strong performance on tabular clinical data
 
 Although XGBoost achieved a slightly higher ROC-AUC, Random Forest provided the most suitable trade-off for early ICU risk prediction.
 
@@ -132,21 +160,89 @@ These findings align with known indicators of COVID-19 severity.
 
 ## Engineering and Reproducibility
 
-The project was refactored from exploratory notebooks into a modular and reproducible machine learning pipeline.
+The project was refactored from exploratory notebooks into a modular, reproducible, production-oriented ML engineering workflow.
 
 Implemented engineering improvements include:
 
-* Modular package structure (`src/`)
-* Reusable preprocessing pipeline
+* Modular Python package structure (`src/`)
+* Reusable preprocessing pipelines
+* Centralized configuration management
 * CLI execution interface (`run.py`)
 * Versioned model persistence
+* Automated evaluation reporting
 * Metrics tracking using JSON artifacts
-* Automated evaluation report generation
-* Versioned figure and report saving
+* Versioned figure generation
 * Windows-safe path handling
-* Reproducible training workflow
+* Deployment-safe inference architecture
+* Reproducible training workflows
 
 The best-performing model is automatically selected, versioned, and saved during training.
+
+---
+
+## Deployment Architecture
+
+The project was extended into a deployable end-to-end ML application using:
+
+* FastAPI backend
+* Streamlit frontend
+* Docker containerization
+* Render cloud deployment architecture
+
+### Backend
+
+The FastAPI backend provides:
+
+* Live inference API
+* Schema-safe prediction handling
+* Reusable inference adapter layer
+* Automatic Swagger API documentation
+
+### Frontend
+
+The Streamlit frontend provides:
+
+* Interactive ICU risk dashboard
+* Structured clinical inputs
+* Probability visualization
+* Risk-level interpretation
+* Deployment-safe API configuration
+
+### Inference Architecture
+
+```text
+User Input
+    ↓
+Streamlit Frontend
+    ↓
+FastAPI Backend
+    ↓
+Inference Adapter
+    ↓
+Saved sklearn Pipeline
+    ↓
+ICU Risk Prediction
+```
+
+---
+
+## Dockerization
+
+The application is fully Dockerized for reproducible deployment.
+
+Dockerization provides:
+
+* Portable runtime environment
+* Dependency consistency
+* Cloud deployment readiness
+* Reproducible infrastructure
+
+The Docker container runs:
+
+* FastAPI backend
+* Streamlit frontend
+
+inside a single deployment-ready environment.
 
 ---
 
@@ -154,12 +250,17 @@ The best-performing model is automatically selected, versioned, and saved during
 
 ```text
 icu-covid19-prediction/
+├── app/
+│   ├── api/
+│   ├── frontend/
+│   └── utils/
 ├── data/
 │   ├── raw/
-│   └── processed/
+│   ├── processed/
+│   └── README.md
 ├── notebooks/
-│   ├── 01_eda_and_data_understanding.ipynb
-│   └── 02_model_experiments.ipynb
+│   ├── 02_eda_and_data_understanding.ipynb
+│   └── 03_model_experiments.ipynb
 ├── src/
 │   ├── __init__.py
 │   ├── config.py
@@ -171,12 +272,17 @@ icu-covid19-prediction/
 ├── models/
 ├── reports/
 │   ├── figures/
-│   └── evaluation_<timestamp>.md
+│   ├── evaluation_<timestamp>.md
+│   └── project_summary.md
 ├── results/
 │   └── metrics_<timestamp>.json
+├── Dockerfile
+├── .dockerignore
+├── start.sh
 ├── run.py
+├── requirements.txt
 ├── README.md
-└── requirements.txt
+└── LICENSE
 ```
 
 ---
@@ -196,7 +302,7 @@ cd icu-covid19-prediction
 pip install -r requirements.txt
 ```
 
-### 3. Run the training pipeline
+### 3. Run the ML training pipeline
 
 ```bash
 python run.py
@@ -213,18 +319,97 @@ The pipeline will:
 
 ---
 
+## Run the Deployment Stack Locally
+
+### Run FastAPI backend
+
+```bash
+uvicorn app.api.main:app --reload
+```
+
+### Run Streamlit frontend
+
+```bash
+streamlit run app/frontend/streamlit_app.py
+```
+
+### Open locally
+
+Frontend:
+
+```text
+http://localhost:8501
+```
+
+API documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## Docker Usage
+
+### Build Docker image
+
+```bash
+docker build -t icu-prediction-app .
+```
+
+### Run Docker container
+
+```bash
+docker run -p 8501:8501 -p 8000:8000 icu-prediction-app
+```
+
+---
+
+## Dataset License
+
+Dataset license:
+
+```text
+CC BY-NC 4.0
+```
+
+This repository does not claim ownership of the original dataset.
+
+Dataset attribution remains with the original authors/providers.
+
+---
+
+## Important Note About Inputs
+
+Many numerical features in the research dataset were already normalized by the original dataset providers.
+
+Therefore:
+
+* frontend numerical inputs represent normalized clinical features
+* the deployed application is intended for educational and portfolio purposes
+* the system should not be interpreted as a real clinical diagnostic tool
+
+---
+
 ## Key Takeaways and Next Steps
 
-* Early-stage ICU prediction is feasible using limited clinical data when temporal structure is handled correctly
-* Restricting the dataset to the first observation window (0–2 hours) is essential to prevent temporal leakage
-* Tree-based models outperformed linear models on this dataset
-* Model behavior aligns with established clinical indicators of COVID-19 severity
+### Key Takeaways
 
-Potential future improvements include:
+* Early-stage ICU prediction is feasible using limited clinical data when temporal structure is handled correctly
+* Restricting analysis to the first observation window (0–2 hours) is critical to prevent temporal leakage
+* Tree-based models outperformed linear models on this dataset
+* Proper training/inference schema consistency is essential for deployment-safe ML systems
+* End-to-end ML deployment requires coordination between modeling, APIs, frontend systems, and infrastructure
+
+### Potential Future Improvements
 
 * Hyperparameter optimization
 * Cross-validation
 * Probability calibration
-* External validation on additional cohorts
-* Deployment as a clinical decision support tool
+* External validation on additional patient cohorts
+* Authentication and monitoring layers
+* CI/CD automation
+* Multi-container orchestration
+* Cloud model monitoring
 
+---
